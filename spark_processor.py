@@ -1,6 +1,3 @@
-# spark_processor.py (v2)
-# Updated to handle the new 'message_length' feature.
-
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col, udf, length
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, FloatType
