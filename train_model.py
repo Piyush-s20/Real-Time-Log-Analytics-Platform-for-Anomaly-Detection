@@ -1,5 +1,4 @@
 # train_model.py (v2)
-# This script now includes message length as a feature for the model.
 
 import pandas as pd
 from sklearn.ensemble import IsolationForest
