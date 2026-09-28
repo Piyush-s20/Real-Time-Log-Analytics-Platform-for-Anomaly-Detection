@@ -1,6 +1,16 @@
-# Docker Compose file for the Real-Time Log Analytics Platform (v2)
-# Now includes the containerized log producer.
-# Version: 3.8
+# Docker Compose file for the Real-Time Log Analytics Platform (v3)
+# Log producer -> Kafka -> Spark Structured Streaming (Isolation Forest) -> Elasticsearch -> Kibana
+
+x-spark-common: &spark-common
+  build:
+    context: ./spark
+    dockerfile: Dockerfile
+  image: log-analytics-spark:3.3.1
+  volumes:
+    - ./spark_processor.py:/opt/spark-apps/spark_processor.py:ro
+    - ./models:/opt/bitnami/spark/models:ro
+    - ./checkpoints:/opt/spark-data/checkpoints
+    - ./metrics:/opt/spark-data/metrics
 
 services:
   zookeeper:
@@ -27,20 +37,26 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "kafka:29092", "--list"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
 
   spark-master:
-    image: bitnami/spark:3.3.1
+    <<: *spark-common
     container_name: spark-master
     ports:
       - "8080:8080"
       - "7077:7077"
+      - "4040:4040"
     environment:
       - SPARK_MODE=master
       - SPARK_RPC_AUTHENTICATE=false
       - SPARK_RPC_ENCRYPTION=false
 
   spark-worker:
-    image: bitnami/spark:3.3.1
+    <<: *spark-common
     container_name: spark-worker
     depends_on:
       - spark-master
@@ -49,6 +65,8 @@ services:
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_CORES=4
+      - SPARK_WORKER_MEMORY=2G
       - SPARK_RPC_AUTHENTICATE=false
       - SPARK_RPC_ENCRYPTION=false
 
@@ -77,14 +95,29 @@ services:
     environment:
       ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200'
 
-  # --- NEW SERVICE ---
   log-producer:
     container_name: log-producer
     build:
       context: .
       dockerfile: Dockerfile
     depends_on:
-      - kafka # Ensures Kafka is running before the producer starts
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER: kafka:29092  # localhost:9092 is not reachable from inside the container
+      KAFKA_TOPIC: logs
+      MESSAGE_DELAY: "1"
+      ANOMALY_RATE: "0.05"
+
+  # One-off model training: docker compose run --rm trainer
+  trainer:
+    profiles: ["tools"]
+    build:
+      context: .
+      dockerfile: Dockerfile.train
+    volumes:
+      - ./models:/app/models
+      - ./metrics:/app/metrics
 
 networks:
   default:
