@@ -1,1 +1,22 @@
-venv/ 
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Spark streaming state
+checkpoints/
+spark-warehouse/
+metastore_db/
+derby.log
+
+# Runtime metrics that grow without bound (model_metrics.json is kept)
+metrics/stream_progress.jsonl
+metrics/*.log
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+models/*.joblib

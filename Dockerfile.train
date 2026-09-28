@@ -1,0 +1,10 @@
+# Image for training the model. Python 3.8 matches the Spark image (3.8.16) and
+# requirements-train.txt pins the same library versions as spark/requirements-spark.txt.
+FROM python:3.8-slim
+
+WORKDIR /app
+COPY requirements-train.txt .
+RUN pip install --no-cache-dir -r requirements-train.txt
+COPY log_producer.py train_model.py ./
+
+CMD ["python", "train_model.py"]

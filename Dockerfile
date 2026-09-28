@@ -8,13 +8,13 @@ WORKDIR /app
 
 # 3. Copy the requirements file into the container first
 # This is a best practice for Docker layer caching
-COPY requirements.txt .
+COPY requirements-producer.txt .
 
 # 4. Install the Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements-producer.txt
 
-# 5. Copy the rest of the application code
-COPY . .
+# 5. Copy the producer code
+COPY log_producer.py .
 
 # 6. Define the command to run when the container starts
 CMD ["python", "log_producer.py"]
