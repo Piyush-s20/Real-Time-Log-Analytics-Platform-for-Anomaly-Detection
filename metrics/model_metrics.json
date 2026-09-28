@@ -1,0 +1,44 @@
+{
+  "precision": 0.8327,
+  "recall": 0.8636,
+  "f1": 0.8479,
+  "confusion_matrix": {
+    "tn": 4716,
+    "fp": 42,
+    "fn": 33,
+    "tp": 209
+  },
+  "recall_by_anomaly_type": {
+    "latency_spike": 0.8904,
+    "rare_error": 1.0,
+    "unusual_length": 0.6951
+  },
+  "dataset": {
+    "n_logs": 20000,
+    "anomaly_rate": 0.05,
+    "train_size": 15000,
+    "test_size": 5000,
+    "test_anomalies": 242,
+    "test_anomalies_by_type": {
+      "normal": 4758,
+      "rare_error": 87,
+      "unusual_length": 82,
+      "latency_spike": 73
+    },
+    "seed": 42
+  },
+  "model": {
+    "type": "IsolationForest",
+    "n_estimators": 200,
+    "max_samples": 4096,
+    "contamination": 0.05,
+    "tfidf_max_features": 100,
+    "tfidf_binary": true,
+    "n_features": 102
+  },
+  "versions": {
+    "scikit-learn": "1.3.2",
+    "numpy": "1.24.4",
+    "joblib": "1.4.2"
+  }
+}
